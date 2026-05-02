@@ -150,6 +150,8 @@ Your context notes are the narrative backbone — they explain WHY the change wa
 ### Code blocks
 
 - MUST come from the actual diff. Never invent code.
+- Never paraphrase, simplify, or "improve" code from the diff. Copy it verbatim.
+- If the diff shows specific variable names, file paths, or config values, use those exact values — do not substitute with placeholders like `[leaf pin]` or `[...]`.
 - Starting Point: show the code BEFORE the fix. If the diff is purely additive (no removed lines), show the surrounding context lines from the diff to establish what existed. Never write "[No code removed]".
 - The Fix: show the code AFTER the fix, then explain why it's correct.
 - Use the actual file path and language for syntax highlighting.
@@ -220,3 +222,4 @@ The JSON `body` (markdown, no title heading) must follow this structure:
 - Parse the sub-agent's response carefully. Strip markdown code fences if the LLM wraps the JSON in them.
 - The publish script checks for existing Outline documents with the same title and updates instead of duplicating.
 - If the sub-agent returns invalid JSON or empty title/body, retry the delegation once before reporting failure to the user.
+- After receiving the sub-agent's response, spot-check that code blocks in the body match the actual diff data. If the sub-agent invented or altered code, reject and retry with an explicit reminder: "Code blocks must be copied verbatim from the diff."
