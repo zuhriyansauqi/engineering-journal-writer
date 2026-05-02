@@ -1,7 +1,7 @@
 ---
 name: engineering-journal
 description: "Generate a staff-engineer-quality journal entry from commits: fetch diffs, write investigation narrative, publish to Outline."
-version: 1.1.0
+version: 1.1.1
 author: Mas Ryy
 license: MIT
 required_environment_variables:
