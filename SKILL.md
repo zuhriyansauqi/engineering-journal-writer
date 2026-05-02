@@ -38,7 +38,9 @@ Before doing anything, check that all required config values are set:
 - `OUTLINE_API_TOKEN` — must be set in environment
 - `GITHUB_TOKEN` — must be set in environment (or `gh` CLI authenticated)
 
-If ANY of these are missing or empty, **STOP** and reply with:
+Also confirm that the global delegation model is configured for journal writing quality (recommended: `deepseek/deepseek-v4-pro` via `openrouter`). This is set in `~/.hermes/config.yaml` under `delegation.model` / `delegation.provider`.
+
+If ANY **required** values are missing or empty, **STOP** and reply with:
 
 ```
 ⚠️ Missing required config. Please set the following before using this skill:
@@ -49,6 +51,12 @@ If ANY of these are missing or empty, **STOP** and reply with:
   # Add to ~/.hermes/.env:
   OUTLINE_API_TOKEN=...
   GITHUB_TOKEN=...
+
+  # Recommended: set the delegation model for journal writing quality
+  # (in ~/.hermes/config.yaml under delegation:)
+  #   delegation:
+  #     model: "deepseek/deepseek-v4-pro"
+  #     provider: "openrouter"
 ```
 
 Only list the ones that are actually missing. Do NOT proceed to fetch or generate anything until all config is present.
@@ -70,9 +78,32 @@ This outputs JSON with `commits` (each with message, diff, stats, files) and `pr
 
 ## Step 3: Generate the Journal Entry
 
-Using the diffs, commit messages, PR info, and user's context notes, write the journal entry following the Writing Prompt below.
+Delegate the writing to a sub-agent. The sub-agent uses the global `delegation.model` and `delegation.provider` from `~/.hermes/config.yaml`.
 
-Write the result to `/tmp/journal_entry.json` using **exactly** this format:
+Pass the full fetch output, user context notes, and the **complete Writing Prompt** (everything from "## Writing Prompt" through "## Tools Used" including all subsections) as the `context` field:
+
+```
+delegate_task(
+    goal="Write a staff-engineer-quality technical journal entry as JSON with 'title' and 'body' keys. Output ONLY the raw JSON, no markdown fences.",
+    context="""
+COMMIT DATA:
+<the full JSON output from Step 2>
+
+USER CONTEXT NOTES:
+<the user's context notes, or "None provided" if empty>
+
+WRITING INSTRUCTIONS:
+<inline the entire Writing Prompt section from this file — including Writing approach, Voice and tone, Code blocks, Depth, Tools Used, and Output format>
+""",
+    toolsets=["file"]
+)
+```
+
+When the sub-agent returns:
+
+1. Extract the JSON (`title` + `body`) from the sub-agent's summary
+2. Strip any markdown code fences (` ```json ... ``` `) if present
+3. Write the result to `/tmp/journal_entry.json`:
 
 ```json
 {
@@ -80,6 +111,8 @@ Write the result to `/tmp/journal_entry.json` using **exactly** this format:
   "body": "markdown content here"
 }
 ```
+
+Validate that both `title` and `body` are non-empty strings before proceeding.
 
 ## Step 4: Publish to Outline
 
@@ -182,7 +215,8 @@ The JSON `body` (markdown, no title heading) must follow this structure:
 
 ## Rules
 
-- If no context notes are provided, rely on commit messages and PR description for narrative. The entry will be more mechanical but still useful.
-- If a commit has no associated PR, skip PR info — just use the commit message and diff.
-- Parse the JSON output carefully. Strip markdown code fences if the LLM wraps them.
-- The script checks for existing Outline documents with the same title and updates instead of duplicating.
+- If no context notes are provided, pass "None provided" to the sub-agent. It will rely on commit messages and PR descriptions for narrative.
+- If a commit has no associated PR, the fetch output will omit PR info — the sub-agent handles this.
+- Parse the sub-agent's response carefully. Strip markdown code fences if the LLM wraps the JSON in them.
+- The publish script checks for existing Outline documents with the same title and updates instead of duplicating.
+- If the sub-agent returns invalid JSON or empty title/body, retry the delegation once before reporting failure to the user.

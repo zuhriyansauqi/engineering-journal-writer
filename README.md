@@ -37,6 +37,8 @@ graph LR
 |-----|-------------|---------|
 | `engineering_journal.outline_url` | Outline base URL | *(required)* |
 | `engineering_journal.outline_collection_id` | Collection ID for journal entries | *(required)* |
+| `delegation.model` | Model for the journal writing sub-agent (global) | `deepseek/deepseek-v4-pro` |
+| `delegation.provider` | Provider for the delegation model (global) | `openrouter` |
 | `OUTLINE_API_TOKEN` | Outline API token (in `~/.hermes/.env`) | *(required)* |
 | `GITHUB_TOKEN` | GitHub token (in `~/.hermes/.env`) | *(required)* |
 
