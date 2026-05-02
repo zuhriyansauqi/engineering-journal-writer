@@ -1,0 +1,16 @@
+[project]
+name = "engineering-journal-writer"
+version = "1.0.0"
+description = "Generate staff-engineer-quality journal entries from commits: fetch diffs, write investigation narrative, publish to Outline."
+readme = "README.md"
+requires-python = ">=3.14"
+license = "MIT"
+authors = [{ name = "Mas Ryy" }]
+dependencies = []
+
+[tool.unittest]
+start-dir = "tests"
+
+[tool.pyright]
+extraPaths = ["scripts"]
+typeCheckingMode = "strict"
