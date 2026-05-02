@@ -53,19 +53,6 @@ For **fine-grained personal access tokens** (recommended), select only the repos
 
 For **classic tokens**, the `repo` scope covers both but grants broader access than necessary.
 
-## CLI Usage
-
-```bash
-# Fetch commit data (results cached in /tmp/journal_cache/)
-python3 scripts/journal_helper.py fetch <owner/repo> <sha1> [<sha2> ...]
-
-# Publish to Outline
-python3 scripts/journal_helper.py publish <journal.json>
-
-# Preview without publishing
-python3 scripts/journal_helper.py publish --dry-run <journal.json>
-```
-
 ## Running Tests
 
 ```bash
