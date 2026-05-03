@@ -13,7 +13,7 @@ from unittest.mock import patch, MagicMock
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "scripts"))
 
 from http_client import ApiError
-from outline_client import publish
+from outline_client import publish, search
 
 
 def _write_journal(tmp: str, title: str = "Test Entry", body: str = "# Content") -> str:
@@ -112,6 +112,33 @@ class TestPublishUpdate(unittest.TestCase):
             path = _write_journal(tmp)
             result = publish(path)
         self.assertEqual(result["action"], "updated")
+
+
+class TestSearchFound(unittest.TestCase):
+    @override
+    def setUp(self) -> None:
+        os.environ["OUTLINE_URL"] = "https://outline.test"
+        os.environ["OUTLINE_API_TOKEN"] = "tok"
+        os.environ["OUTLINE_COLLECTION_ID"] = "col-123"
+
+    @override
+    def tearDown(self) -> None:
+        os.environ.pop("OUTLINE_URL", None)
+        os.environ.pop("OUTLINE_API_TOKEN", None)
+        os.environ.pop("OUTLINE_COLLECTION_ID", None)
+
+    @patch("outline_client.api_request")
+    def test_search_finds_existing(self, mock_req: MagicMock) -> None:
+        mock_req.return_value = {"data": [{"document": {"id": "doc-1", "title": "Test Entry", "url": "https://outline.test/doc/doc-1"}}]}
+        result = search("Test Entry")
+        self.assertTrue(result["found"])
+        self.assertEqual(result["id"], "doc-1")
+
+    @patch("outline_client.api_request")
+    def test_search_not_found(self, mock_req: MagicMock) -> None:
+        mock_req.return_value = {"data": []}
+        result = search("Nonexistent")
+        self.assertFalse(result["found"])
 
 
 if __name__ == "__main__":

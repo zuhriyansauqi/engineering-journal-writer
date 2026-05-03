@@ -1,7 +1,7 @@
 ---
 name: engineering-journal
 description: "Generate a staff-engineer-quality journal entry from commits: fetch diffs, write investigation narrative, publish to Outline."
-version: 1.1.1
+version: 1.2.0
 author: Mas Ryy
 license: MIT
 required_environment_variables:
@@ -75,6 +75,22 @@ python3 ${HERMES_SKILL_DIR}/scripts/journal_helper.py fetch "<owner/repo>" <sha1
 ```
 
 This outputs JSON with `commits` (each with message, diff, stats, files) and `prs` (associated PR titles and descriptions). Read the diffs carefully.
+
+Before proceeding, trim the diff data to reduce token cost:
+- Remove diffs for lock files (`*.lock`, `package-lock.json`, `yarn.lock`, `Podfile.lock`), generated code, and binary files.
+- Remove diff hunks that are purely whitespace or import reordering.
+- Keep all hunks that contain logic changes, config changes, or new code.
+
+## Step 2.5: Check for Existing Entry
+
+Before delegating to the sub-agent, check if a journal entry already exists in Outline for these commits. Search by the first commit SHA (titles vary between runs, but SHAs are deterministic):
+
+```bash
+OUTLINE_URL="<outline_url>" OUTLINE_COLLECTION_ID="<outline_collection_id>" \
+  python3 ${HERMES_SKILL_DIR}/scripts/journal_helper.py search "<first_commit_sha>"
+```
+
+If a matching document is found, ask the user: "A journal entry already exists for this: [title] ([url]). Do you want to update it or skip?" If the user says skip, stop here. This saves the cost of a full sub-agent delegation.
 
 ## Step 3: Generate the Journal Entry
 
@@ -175,7 +191,7 @@ The JSON `title` must be SEO-optimized, include the core technology and problem.
 The JSON `body` (markdown, no title heading) must follow this structure:
 
 ```
-> **Date:** [date]  **Project:** [project]  **Tags:** [tags]
+> **Date:** [date]  **Project:** [project]  **Tags:** [tags]  **Commits:** [comma-separated short SHAs]
 
 [Opening: 2-3 sentences. What broke, what the symptom looked like, where it showed up.]
 

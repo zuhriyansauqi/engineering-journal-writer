@@ -5,9 +5,10 @@ Engineering Journal — CLI entry point.
 Usage:
   python journal_helper.py fetch <owner/repo> <sha> [<sha2> ...]
   python journal_helper.py publish [--dry-run] <journal_json_file>
+  python journal_helper.py search <title>
 
 Requires: GITHUB_TOKEN env var or gh CLI authenticated.
-         OUTLINE_API_TOKEN env var for publishing.
+         OUTLINE_API_TOKEN env var for publishing/searching.
 """
 
 from __future__ import annotations
@@ -56,6 +57,12 @@ def cmd_publish(journal_file: str, dry_run: bool = False) -> None:
     print(json.dumps(result, indent=2))
 
 
+def cmd_search(title: str) -> None:
+    """Search for an existing journal entry by title."""
+    result = outline_client.search(title)
+    print(json.dumps(result, indent=2))
+
+
 def main() -> None:
     if len(sys.argv) < 2:
         print(__doc__)
@@ -76,6 +83,11 @@ def main() -> None:
                 print("Usage: journal_helper.py publish [--dry-run] <journal.json>", file=sys.stderr)
                 sys.exit(1)
             cmd_publish(args[0], dry_run=dry_run)
+        elif cmd == "search":
+            if len(sys.argv) < 3:
+                print("Usage: journal_helper.py search <title>", file=sys.stderr)
+                sys.exit(1)
+            cmd_search(" ".join(sys.argv[2:]))
         else:
             print(f"Unknown command: {cmd}", file=sys.stderr)
             sys.exit(1)

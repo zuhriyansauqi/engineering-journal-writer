@@ -110,6 +110,10 @@ Published to Outline as:
 >
 > *(continues with full investigation, code blocks from the diff, root cause analysis, and takeaway)*
 
+## Tip: Review Past Entries
+
+The real value of an engineering journal compounds over time. Periodically re-read entries from weeks or months ago — you'll start spotting patterns across incidents (the same class of bug in different systems, recurring architectural blind spots, debugging heuristics that keep working). That cross-entry pattern recognition is where journaling turns from documentation into engineering growth.
+
 ## Tags
 
 `Android` `Engineering-Journal` `GitHub` `Outline` `Documentation`

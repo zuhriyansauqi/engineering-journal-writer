@@ -48,6 +48,15 @@ def _find_existing(base_url: str, token: str, collection_id: str, title: str) ->
     return None
 
 
+def search(title: str) -> dict[str, object]:
+    """Search for an existing document by title. Returns match info or not-found."""
+    base_url, token, collection_id = _get_config()
+    existing = _find_existing(base_url, token, collection_id, title)
+    if existing:
+        return {"found": True, "id": existing.get("id"), "title": existing.get("title"), "url": existing.get("url")}
+    return {"found": False}
+
+
 def publish(journal_file: str, dry_run: bool = False) -> dict[str, object]:
     """Publish a journal entry to Outline. Returns action result dict."""
     with open(journal_file) as f:
